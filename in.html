@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>С днём рождения! 🎂</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px 0;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255, 60, 160, 0.22), transparent 45%),
+      radial-gradient(circle at 80% 85%, rgba(60, 120, 255, 0.22), transparent 45%),
+      linear-gradient(160deg, #0a0614, #150a2b 50%, #070312);
+    font-family: "Segoe UI", sans-serif;
+    color: #fff;
+    overflow-x: hidden;
+  }
+
+  .star {
+    position: fixed;
+    background: #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    animation: twinkle ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: 0.15; transform: scale(0.8); }
+    to   { opacity: 1; transform: scale(1.2); }
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(26px, 7vw, 42px);
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 0 8px #ff4fa3, 0 0 20px #ff4fa3, 0 0 40px #b026ff;
+    z-index: 2;
+    animation: neon 2.5s ease-in-out infinite alternate;
+  }
+  @keyframes neon {
+    from { text-shadow: 0 0 6px #ff4fa3, 0 0 16px #ff4fa3, 0 0 30px #b026ff; }
+    to   { text-shadow: 0 0 10px #ff4fa3, 0 0 28px #ff4fa3, 0 0 55px #b026ff; }
+  }
+
+  /* Сцена: круговой визуализатор + пластинка */
+  .stage {
+    --d: min(48vw, 240px);              /* диаметр пластинки */
+    position: relative;
+    width: calc(var(--d) * 1.9);
+    height: calc(var(--d) * 1.9);
+    z-index: 2;
+  }
+  #viz {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .vinyl-wrap {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .vinyl {
+    width: var(--d);
+    height: var(--d);
+    border-radius: 50%;
+    position: relative;
+    cursor: pointer;
+    background: repeating-radial-gradient(circle at center,
+      #0b0b0b 0, #0b0b0b 3px, #1a1a1f 4px, #0b0b0b 5px);
+    box-shadow:
+      0 0 0 3px rgba(79, 255, 220, 0.5),
+      0 0 35px rgba(79, 220, 255, 0.5),
+      0 0 80px rgba(176, 38, 255, 0.4),
+      0 12px 40px rgba(0, 0, 0, 0.8);
+    animation: spin 6s linear infinite;
+    animation-play-state: paused;
+  }
+  .vinyl.playing { animation-play-state: running; }
+  .vinyl::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+      transparent 0 20%, rgba(255,255,255,0.14) 25%, transparent 30% 70%,
+      rgba(255,255,255,0.14) 75%, transparent 80%);
+  }
+  .label {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 42%; height: 42%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #4fffdc;
+    box-shadow: 0 0 18px rgba(79, 255, 220, 0.8);
+    background: #2a1245;
+  }
+  .label img { width: 100%; height: 100%; object-fit: cover; }
+  .hole {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 14px; height: 14px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: #0a0614;
+    border: 2px solid #4fffdc;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .text {
+    max-width: 440px;
+    width: 90%;
+    text-align: center;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #ffe3f1;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 79, 163, 0.35);
+    backdrop-filter: blur(8px);
+    padding: 14px 18px;
+    border-radius: 20px;
+    box-shadow: 0 0 25px rgba(176, 38, 255, 0.25);
+    z-index: 2;
+  }
+
+  /* Тортик */
+  .cake-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+    cursor: pointer;
+  }
+  .cake { position: relative; width: 170px; filter: drop-shadow(0 0 18px rgba(255, 79, 163, 0.35)); }
+  .candles {
+    display: flex;
+    justify-content: center;
+    gap: 22px;
+    height: 56px;
+    align-items: flex-end;
+  }
+  .candle {
+    position: relative;
+    width: 10px;
+    height: 34px;
+    background: repeating-linear-gradient(45deg, #fff 0 6px, #ff8fc0 6px 12px);
+    border-radius: 3px;
+  }
+  .flame {
+    position: absolute;
+    top: -22px; left: 50%;
+    width: 14px; height: 22px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at 50% 70%, #fff6a8, #ffb300 60%, #ff6a00);
+    border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+    box-shadow: 0 0 18px 6px rgba(255, 200, 60, 0.85);
+    transform-origin: 50% 100%;
+    animation: flicker 0.3s ease-in-out infinite alternate;
+    transition: opacity 0.3s;
+  }
+  .out .flame { opacity: 0; animation: none; }
+  @keyframes flicker {
+    from { transform: translateX(-50%) scale(1, 1) rotate(-3deg); }
+    to   { transform: translateX(-50%) scale(0.9, 1.1) rotate(3deg); }
+  }
+  .smoke {
+    position: absolute;
+    top: -30px; left: 50%;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.7);
+    opacity: 0;
+  }
+  .out .smoke { animation: smoke 1.6s ease-out; }
+  @keyframes smoke {
+    0% { opacity: 0.8; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -40px) scale(5); }
+  }
+  .layer { height: 38px; margin: 0 auto; border-radius: 10px 10px 4px 4px; position: relative; }
+  .top-layer { width: 130px; background: #ffd9ea; }
+  .top-layer::before {
+    content: ""; position: absolute; top: -2px; left: 0; right: 0; height: 14px;
+    background: #fff; border-radius: 10px 10px 14px 14px;
+  }
+  .bottom-layer { width: 170px; background: #ff6fb0; }
+  .bottom-layer::before {
+    content: ""; position: absolute; top: -2px; left: 0; right: 0; height: 14px;
+    background: #fff; border-radius: 10px 10px 14px 14px;
+  }
+  .plate {
+    width: 200px; height: 10px; background: #e9dff5; border-radius: 50%;
+    box-shadow: 0 4px 14px rgba(176, 38, 255, 0.4);
+  }
+  .hint {
+    font-size: 14px;
+    margin-top: 8px;
+    color: #ffd0e8;
+    text-align: center;
+    padding: 0 16px;
+    text-shadow: 0 0 8px rgba(255, 79, 163, 0.6);
+  }
+
+  .fall, .balloon { position: fixed; pointer-events: none; z-index: 1; }
+  .fall { top: -30px; font-size: 22px; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+  .balloon { bottom: -60px; font-size: 44px; animation: rise linear forwards; }
+  @keyframes rise { to { transform: translateY(-115vh) translateX(30px); } }
+
+  #fireworks {
+    position: fixed;
+    inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  #start {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 40%, rgba(176, 38, 255, 0.3), transparent 60%),
+      #070312;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    cursor: pointer;
+    z-index: 10;
+    transition: opacity 0.8s;
+  }
+  #start span { font-size: 72px; filter: drop-shadow(0 0 20px #ff4fa3); animation: pulse 1.5s ease-in-out infinite; }
+  #start p { font-size: 20px; color: #ffd0e8; text-shadow: 0 0 12px #ff4fa3; }
+  #start.hide { opacity: 0; pointer-events: none; }
+  @keyframes pulse { 50% { transform: scale(1.12); } }
+</style>
+</head>
+<body>
+
+<div id="start">
+  <span>🎁</span>
+  <p>Нажми</p>
+</div>
+
+<canvas id="fireworks"></canvas>
+
+<h1>🎉 С днём рождения, Адеми 🎂</h1>
+
+<div class="stage" id="stage">
+  <canvas id="viz"></canvas>
+  <div class="vinyl-wrap" id="vinylWrap">
+    <div class="vinyl" id="vinyl">
+      <div class="label"><img src="photo.jpg" alt=""></div>
+      <div class="hole"></div>
+    </div>
+  </div>
+</div>
+
+<div class="text">
+  Поздравляю с новым шагом к взрослой жизни! 🥳<br>
+
+Желаю тебе огромного счастья, крепкого здоровья, сил, терпения, успешной сдачи всех экзаменов, светлого будущего, работы мечты, благополучия в семье, богатого и любящего мужа, исполнения всех мечт и желаний, а также множества замечательных и тёплых моментов! <br>
+<br>
+Пусть все твои старания обязательно приведут к успеху, все двери, в которые ты постучишь, открываются перед тобой, а жизнь преподносит как можно больше приятных сюрпризов. Желаю тебе никогда не сомневаться в себе, смело идти к своим целям и не бояться мечтать по-крупному.
+<br>
+<br>Пусть рядом всегда будут искренние и надёжные люди, которые поддержат в трудную минуту и разделят с тобой самые счастливые моменты. Желаю много путешествий, незабываемых впечатлений, искреннего смеха, красивых историй любви и воспоминаний, к которым захочется возвращаться снова и снова.
+</div>
+
+<div class="cake-wrap" id="cakeWrap">
+  <div class="cake" id="cake">
+    <div class="candles">
+      <div class="candle"><div class="flame"></div><div class="smoke"></div></div>
+      <div class="candle"><div class="flame"></div><div class="smoke"></div></div>
+      <div class="candle"><div class="flame"></div><div class="smoke"></div></div>
+    </div>
+    <div class="layer top-layer"></div>
+    <div class="layer bottom-layer"></div>
+  </div>
+  <div class="plate"></div>
+  <div class="hint" id="hint">Загадай желание и потряси телефон 🎂</div>
+</div>
+
+<audio id="song" src="song.mp3" loop></audio>
+
+<script>
+  const start = document.getElementById('start');
+  const vinyl = document.getElementById('vinyl');
+  const vinylWrap = document.getElementById('vinylWrap');
+  const song = document.getElementById('song');
+  const cake = document.getElementById('cake');
+  const cakeWrap = document.getElementById('cakeWrap');
+  const hint = document.getElementById('hint');
+  const canvas = document.getElementById('fireworks');
+  const ctx = canvas.getContext('2d');
+  const stage = document.getElementById('stage');
+  const viz = document.getElementById('viz');
+  const vctx = viz.getContext('2d');
+
+  /* ---------- Звёзды ---------- */
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = 1 + Math.random() * 2.5;
+    s.style.width = s.style.height = size + 'px';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.top = Math.random() * 100 + 'vh';
+    s.style.animationDuration = 1.5 + Math.random() * 3 + 's';
+    s.style.animationDelay = Math.random() * 3 + 's';
+    document.body.appendChild(s);
+  }
+
+  /* ---------- Конфетти и шарики ---------- */
+  function confetti() {
+    const el = document.createElement('div');
+    el.className = 'fall';
+    el.textContent = ['🎉','🎊','🎂'][Math.floor(Math.random() * 6)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.animationDuration = 4 + Math.random() * 4 + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 8000);
+  }
+  function balloon() {
+    const el = document.createElement('div');
+    el.className = 'balloon';
+    el.textContent = [][Math.floor(Math.random() * 4)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.animationDuration = 7 + Math.random() * 5 + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 12000);
+  }
+
+  /* ---------- Анализ звука ---------- */
+  let audioCtx = null, analyser = null, freqData = null, analyserReady = false;
+
+  function setupAnalyser() {
+    if (audioCtx) return;
+    // Настоящий анализ работает только на сайте (http/https), не при открытии файла
+    if (!location.protocol.startsWith('http')) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+      const source = audioCtx.createMediaElementSource(song);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.7;
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      analyserReady = true;
+    } catch (e) {
+      analyserReady = false;
+    }
+  }
+  function wakeAudio() {
+    setupAnalyser();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  document.addEventListener('click', wakeAudio);
+  document.addEventListener('touchend', wakeAudio);
+
+  /* ---------- Круговой визуализатор ---------- */
+  const BANDS = 48;
+  const spec = new Array(BANDS).fill(0);
+  let bass = 0;
+  let vw = 0, vh = 0, dpr = 1;
+
+  function resizeViz() {
+    dpr = window.devicePixelRatio || 1;
+    vw = stage.clientWidth;
+    vh = stage.clientHeight;
+    viz.width = vw * dpr;
+    viz.height = vh * dpr;
+    vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resizeViz();
+  window.addEventListener('resize', resizeViz);
+
+  function updateSpectrum(time) {
+    const playing = !song.paused;
+    if (playing && analyserReady) analyser.getByteFrequencyData(freqData);
+    for (let i = 0; i < BANDS; i++) {
+      let target = 0;
+      if (playing) {
+        if (analyserReady) {
+          target = freqData[i] / 255;
+        } else {
+          // имитация ритма (когда сайт открыт просто файлом)
+          const t = time / 1000;
+          const beat = Math.pow(0.5 + 0.5 * Math.sin(t * 7.5), 4);
+          const wob = (0.5 + 0.5 * Math.sin(t * 3 + i * 0.5)) * (0.5 + 0.5 * Math.sin(t * 1.7 + i * 0.21));
+          const lowBoost = 1 - i / BANDS;
+          target = 0.15 + wob * 0.45 + beat * 0.45 * lowBoost;
+        }
+      }
+      spec[i] += (target - spec[i]) * 0.35;
+    }
+    let b = 0;
+    for (let i = 0; i < 4; i++) b += spec[i];
+    bass = b / 4;
+  }
+
+  // значение спектра для точки на круге (t от 0 до 1), симметрично, без шва
+  function specAt(t) {
+    const m = Math.abs(2 * t - 1);
+    const pos = m * (BANDS - 1);
+    const i0 = Math.floor(pos), i1 = Math.min(BANDS - 1, i0 + 1);
+    const f = pos - i0;
+    return spec[i0] * (1 - f) + spec[i1] * f;
+  }
+
+  function drawViz(time) {
+    updateSpectrum(time);
+    vctx.clearRect(0, 0, vw, vh);
+
+    const cx = vw / 2, cy = vh / 2;
+    const baseR = vw * 0.33;          // радиус кольца (чуть больше пластинки)
+    const amp = vw * 0.13;            // высота волн
+    const hue = 175 + bass * 70;      // бирюзовый -> фиолетовый на ударах
+    const rot = time / 9000;          // медленное вращение
+
+    /* --- лучики-колонки вокруг пластинки --- */
+    const BARS = 120;
+    vctx.lineCap = 'round';
+    for (let i = 0; i < BARS; i++) {
+      const t = i / BARS;
+      const a = -Math.PI / 2 + t * Math.PI * 2 + rot;
+      const v = specAt(t);
+      const len = 3 + v * amp * 1.05;
+      const r1 = baseR + 6;
+      const r2 = r1 + len;
+      const h = hue + t * 120;
+      vctx.strokeStyle = `hsl(${h % 360}, 100%, ${60 + v * 15}%)`;
+      vctx.shadowBlur = 10;
+      vctx.shadowColor = `hsl(${h % 360}, 100%, 60%)`;
+      vctx.lineWidth = Math.max(2, vw * 0.009);
+      vctx.beginPath();
+      vctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+      vctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+      vctx.stroke();
+    }
+    vctx.shadowBlur = 0;
+
+    /* --- волнистое светящееся кольцо --- */
+    const N = 220;
+    function ringPath(extra, scale) {
+      vctx.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const t = (i % N) / N;
+        const a = -Math.PI / 2 + t * Math.PI * 2 + rot;
+        const jitter = 1 + 0.3 * Math.sin(time / 90 + i * 0.55);
+        const r = baseR + extra + specAt(t) * amp * scale * jitter;
+        const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+        i ? vctx.lineTo(x, y) : vctx.moveTo(x, y);
+      }
+      vctx.closePath();
+    }
+
+    const grad = vctx.createLinearGradient(0, cy - baseR, 0, cy + baseR);
+    grad.addColorStop(0, `hsl(${hue}, 100%, 70%)`);
+    grad.addColorStop(0.5, `hsl(${hue + 50}, 100%, 65%)`);
+    grad.addColorStop(1, `hsl(${hue + 100}, 100%, 65%)`);
+
+    vctx.lineJoin = 'round';
+    // внешнее мягкое свечение
+    ringPath(0, 0.55);
+    vctx.strokeStyle = grad;
+    vctx.lineWidth = 7;
+    vctx.shadowBlur = 28 + bass * 28;
+    vctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+    vctx.globalAlpha = 0.55;
+    vctx.stroke();
+    // яркая линия
+    ringPath(0, 0.55);
+    vctx.lineWidth = 3;
+    vctx.globalAlpha = 1;
+    vctx.stroke();
+    // белая сердцевина
+    ringPath(0, 0.55);
+    vctx.shadowBlur = 0;
+    vctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    vctx.lineWidth = 1.2;
+    vctx.stroke();
+
+    // тонкое внутреннее кольцо (отражение волны)
+    ringPath(-8, -0.25);
+    vctx.strokeStyle = `hsla(${hue + 100}, 100%, 70%, 0.55)`;
+    vctx.shadowBlur = 14;
+    vctx.shadowColor = `hsl(${hue + 100}, 100%, 60%)`;
+    vctx.lineWidth = 1.5;
+    vctx.stroke();
+    vctx.shadowBlur = 0;
+
+    // вспышка-свечение за пластинкой на басу
+    const glowR = baseR + amp * 0.6;
+    const g = vctx.createRadialGradient(cx, cy, baseR * 0.7, cx, cy, glowR * 1.25);
+    g.addColorStop(0, `hsla(${hue}, 100%, 60%, ${0.05 + bass * 0.25})`);
+    g.addColorStop(1, `hsla(${hue}, 100%, 60%, 0)`);
+    vctx.fillStyle = g;
+    vctx.fillRect(0, 0, vw, vh);
+
+    // пульсация пластинки в такт басу
+    const s = 1 + Math.min(bass, 1) * 0.06;
+    vinylWrap.style.transform = `translate(-50%, -50%) scale(${s})`;
+
+    requestAnimationFrame(drawViz);
+  }
+  requestAnimationFrame(drawViz);
+
+  /* ---------- Запуск вечеринки ---------- */
+  let partyStarted = false;
+  function startParty() {
+    if (partyStarted) return;
+    partyStarted = true;
+    vinyl.classList.add('playing');
+    start.classList.add('hide');
+    setInterval(confetti, 250);
+    setInterval(balloon, 1500);
+    for (let i = 0; i < 40; i++) setTimeout(confetti, i * 50);
+  }
+
+  /* ---------- Пауза по нажатию на пластинку ---------- */
+  vinyl.addEventListener('click', () => {
+    if (song.paused) {
+      song.play();
+      vinyl.classList.add('playing');
+    } else {
+      song.pause();
+      vinyl.classList.remove('playing');
+    }
+  });
+
+  /* ---------- Фейерверк ---------- */
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let particles = [];
+  let animating = false;
+
+  function burst(x, y) {
+    const hue = Math.random() * 360;
+    for (let i = 0; i < 70; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 5;
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        decay: 0.008 + Math.random() * 0.012,
+        color: `hsl(${hue + Math.random() * 40}, 100%, 60%)`
+      });
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.05;
+      p.vx *= 0.99;
+      p.life -= p.decay;
+      ctx.globalAlpha = Math.max(p.life, 0);
+      ctx.fillStyle = p.color;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    particles = particles.filter(p => p.life > 0);
+    if (particles.length) {
+      requestAnimationFrame(animate);
+    } else {
+      animating = false;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  function fireworks() {
+    for (let i = 0; i < 9; i++) {
+      setTimeout(() => {
+        burst(
+          canvas.width * (0.1 + Math.random() * 0.8),
+          canvas.height * (0.1 + Math.random() * 0.5)
+        );
+        if (!animating) { animating = true; animate(); }
+      }, i * 350);
+    }
+  }
+
+  /* ---------- Задуваем свечи ---------- */
+  let blownOut = false;
+  function blowOut() {
+    if (blownOut) return;
+    blownOut = true;
+    cake.classList.add('out');
+    hint.textContent = 'Ура! Желание загадано 🎉';
+    fireworks();
+    if (navigator.vibrate) navigator.vibrate(200);
+  }
+  function relight() {
+    blownOut = false;
+    cake.classList.remove('out');
+    hint.textContent = 'Загадай желание и потряси телефон 🎂';
+  }
+
+  cakeWrap.addEventListener('click', () => {
+    if (blownOut) relight(); else blowOut();
+  });
+
+  /* ---------- Тряска телефона ---------- */
+  let lastX = null, lastY = null, lastZ = null, lastShake = 0;
+
+  function onMotion(e) {
+    const a = e.accelerationIncludingGravity;
+    if (!a) return;
+    if (lastX !== null) {
+      const delta = Math.abs(a.x - lastX) + Math.abs(a.y - lastY) + Math.abs(a.z - lastZ);
+      const now = Date.now();
+      if (delta > 35 && now - lastShake > 1000) {
+        lastShake = now;
+        if (!blownOut) blowOut();
+      }
+    }
+    lastX = a.x; lastY = a.y; lastZ = a.z;
+  }
+
+  let motionEnabled = false;
+  function enableMotion() {
+    if (motionEnabled) return;
+    if (typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission === 'function') {
+      DeviceMotionEvent.requestPermission().then(state => {
+        if (state === 'granted') {
+          window.addEventListener('devicemotion', onMotion);
+          motionEnabled = true;
+        }
+      }).catch(() => {});
+    } else {
+      window.addEventListener('devicemotion', onMotion);
+      motionEnabled = true;
+    }
+  }
+  document.addEventListener('click', enableMotion);
+  document.addEventListener('touchend', enableMotion);
+
+  /* ---------- Запуск ---------- */
+  function play() {
+    song.play();
+    startParty();
+  }
+  song.play().then(startParty).catch(() => {
+    start.addEventListener('click', play);
+  });
+</script>
+
+</body>
+</html>
