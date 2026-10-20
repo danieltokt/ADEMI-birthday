@@ -326,7 +326,7 @@
   function confetti() {
     const el = document.createElement('div');
     el.className = 'fall';
-    el.textContent = ['🎉','🎊','🎂'][Math.floor(Math.random() * 6)];
+    el.textContent = [][Math.floor(Math.random() * 6)];
     el.style.left = Math.random() * 100 + 'vw';
     el.style.animationDuration = 4 + Math.random() * 4 + 's';
     document.body.appendChild(el);
